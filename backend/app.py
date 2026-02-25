@@ -29,7 +29,14 @@ def create_app():
     with app.app_context():
         db.create_all()
         create_admin_user()
-
+    
+    # 🔥 TEMP TEST ROUTE
+    @app.route("/test-cache")
+    @cache.cached(timeout=20)
+    def test_cache():
+        print("Cache executed")
+        return "Hello Redis Cache!"
+    
     return app
 
 

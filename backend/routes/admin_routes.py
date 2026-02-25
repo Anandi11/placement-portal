@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from services.admin_service import get_placement_report
-
+from extensions import cache
 from services.admin_service import (
     get_admin_dashboard_stats,
     get_all_companies,
@@ -20,6 +20,7 @@ admin_bp = Blueprint("admin_bp", __name__)
 # DASHBOARD
 # ===============================
 @admin_bp.route("/dashboard", methods=["GET"])
+@cache.cached(timeout=30)
 def admin_dashboard():
     return jsonify(get_admin_dashboard_stats())
 
@@ -72,6 +73,7 @@ def blacklist_user_route(id):
 # APPLICATION APIs
 # ===============================
 @admin_bp.route("/applications", methods=["GET"])
+@cache.cached(timeout=30)
 def list_applications():
     return jsonify(get_all_applications())
 

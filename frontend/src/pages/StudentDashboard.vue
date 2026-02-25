@@ -7,7 +7,7 @@
       <button class="btn btn-outline-danger" @click="logout">Logout</button>
     </div>
 
-    <!-- Drives -->
+    <!-- Available Drives -->
     <div class="card shadow-sm">
       <div class="card-header bg-primary text-white">
         Available Placement Drives
@@ -39,8 +39,41 @@
 
             </tr>
           </tbody>
-
         </table>
+      </div>
+    </div>
+
+    <!-- Applied Drives -->
+    <div class="card shadow-sm mt-4">
+      <div class="card-header bg-secondary text-white d-flex justify-content-between">
+        <span>Applied Drives</span>
+        <button class="btn btn-light btn-sm" @click="fetchAppliedDrives">
+          View Applied Drives
+        </button>
+      </div>
+
+      <div class="card-body" v-if="appliedDrives.length">
+        <table class="table table-bordered">
+          <thead>
+            <tr>
+              <th>Drive</th>
+              <th>Company</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr v-for="a in appliedDrives" :key="a.id">
+              <td>{{ a.drive }}</td>
+              <td>{{ a.company }}</td>
+              <td>{{ a.status }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="card-body text-center" v-else>
+        <p>No applications yet.</p>
       </div>
     </div>
 
@@ -54,7 +87,8 @@ export default {
   data() {
     return {
       student_id: localStorage.getItem("user_id"),
-      drives: []
+      drives: [],
+      appliedDrives: []
     };
   },
 
@@ -77,7 +111,7 @@ export default {
     async apply(drive_id) {
       try {
         await API.post("/drive/apply", {
-          student_id: this.student_id,
+          user_id: this.student_id,
           drive_id: drive_id
         });
 
@@ -86,6 +120,11 @@ export default {
       } catch (err) {
         alert(err.response?.data?.message || "Already applied or not eligible");
       }
+    },
+
+    async fetchAppliedDrives() {
+      const res = await API.get(`/student/placement_history/${this.student_id}`);
+      this.appliedDrives = res.data;
     }
 
   }

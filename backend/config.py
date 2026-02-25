@@ -1,21 +1,13 @@
-import os
-
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-
 class Config:
-    SECRET_KEY = "super-secret-key"
+    SECRET_KEY = "secret"
 
-    # 🔥 FIXED SQLite path (inside backend folder)
-    SQLALCHEMY_DATABASE_URI = "sqlite:///" + os.path.join(BASE_DIR, "placement.db")
+    SQLALCHEMY_DATABASE_URI = "sqlite:///placement.db"
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    REDIS_URL = "redis://localhost:6379/0"
-
-    CELERY_BROKER_URL = REDIS_URL
-    CELERY_RESULT_BACKEND = REDIS_URL
-
+    # Redis
     CACHE_TYPE = "RedisCache"
-    CACHE_REDIS_URL = REDIS_URL
+    CACHE_REDIS_URL = "redis://localhost:6379/0"
 
-    JWT_SECRET_KEY = "jwt-secret-key"
-
+    # Celery
+    CELERY_BROKER_URL = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
