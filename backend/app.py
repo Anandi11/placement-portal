@@ -1,7 +1,6 @@
 from flask import Flask
 from config import Config
-from extensions import db, cache, celery
-from extensions import db, cache, celery
+from extensions import db, cache, celery, jwt
 from flask_cors import CORS
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
@@ -19,7 +18,7 @@ def create_app():
 
     db.init_app(app)
     cache.init_app(app)
-
+    jwt.init_app(app)
     init_celery(app)
     import tasks
     app.register_blueprint(auth_bp, url_prefix="/api/auth")

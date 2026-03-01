@@ -2,16 +2,22 @@ from flask import Blueprint, jsonify
 from models import PlacementDrive, Student
 from services.student_service import get_student_placement_history
 from extensions import cache
+from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from tasks import export_student_applications
-student_bp = Blueprint("student_bp", __name__)
 
+student_bp = Blueprint("student_bp", __name__)
 
 # ===============================
 # VIEW APPROVED DRIVES
 # ===============================
 @student_bp.route("/drives", methods=["GET"])
+@jwt_required()
 @cache.cached(timeout=60)
 def view_drives():
+    claims = get_jwt()
+    if claims["role"] != "student":
+        return jsonify({"error": "Unauthorized"}), 403
+
     drives = PlacementDrive.query.filter_by(status="Approved").all()
 
     result = []
@@ -19,7 +25,7 @@ def view_drives():
         result.append({
             "id": d.id,
             "job_title": d.job_title,
-            "company": d.company.company_name,
+            "company": d.company.company_name if d.company else "N/A",
             "deadline": d.application_deadline
         })
 
@@ -29,10 +35,16 @@ def view_drives():
 # ===============================
 # VIEW STUDENT APPLIED DRIVES
 # ===============================
-@student_bp.route("/placement_history/<int:student_id>", methods=["GET"])
-def placement_history(student_id):
-    
-    student = Student.query.get(student_id)
+@student_bp.route("/placement_history", methods=["GET"])
+@jwt_required()
+def placement_history():
+    claims = get_jwt()
+    if claims["role"] != "student":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    user_id = int(get_jwt_identity())
+
+    student = Student.query.filter_by(user_id=user_id).first()
 
     if not student:
         return jsonify([])
@@ -40,7 +52,23 @@ def placement_history(student_id):
     return jsonify(get_student_placement_history(student.id))
 
 
-@student_bp.route("/export/<int:student_id>", methods=["POST"])
-def export_applications(student_id):
-    export_student_applications.delay(student_id)
+# ===============================
+# EXPORT APPLICATIONS (ASYNC)
+# ===============================
+@student_bp.route("/export", methods=["POST"])
+@jwt_required()
+def export_applications():
+    claims = get_jwt()
+    if claims["role"] != "student":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    user_id = int(get_jwt_identity())
+
+    student = Student.query.filter_by(user_id=user_id).first()
+
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    export_student_applications.delay(student.id)
+
     return jsonify({"message": "Export started in background"})

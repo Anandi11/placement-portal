@@ -39,7 +39,7 @@ export default {
 
         localStorage.setItem("role", role);
         localStorage.setItem("user_id", user_id);
-        // 🔥 NEW
+        localStorage.setItem("token", res.data.access_token);
         if (res.data.company_id)
           localStorage.setItem("company_id", res.data.company_id);
 

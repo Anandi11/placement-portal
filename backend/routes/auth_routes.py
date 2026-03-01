@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from extensions import db
 from models import User, Student, Company
-
+from flask_jwt_extended import create_access_token
 auth_bp = Blueprint("auth_bp", __name__)
 
 
@@ -73,8 +73,8 @@ def register_company():
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
-
     data = request.get_json()
+
     email = data.get("email")
     password = data.get("password")
 
@@ -83,11 +83,15 @@ def login():
     if not user or not user.check_password(password):
         return jsonify({"message": "Invalid credentials"}), 401
 
-    response = {
-        "message": "Login successful",
-        "role": user.role,
-        "user_id": user.id
-    }
+    token = create_access_token(
+        identity=str(user.id),
+        additional_claims={"role": user.role}
+    )
+
+    return jsonify({
+        "access_token": token,
+        "role": user.role
+    })
 
     # 🔥 ADD THIS PART
     if user.role == "company":

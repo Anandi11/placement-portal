@@ -134,7 +134,6 @@ import API from "../services/api";
 export default {
   data() {
     return {
-      company_id: localStorage.getItem("company_id"),
       drives: [],
       applicants: [],
       selectedDrive: null,
@@ -157,12 +156,12 @@ export default {
   methods: {
 
     logout() {
+      localStorage.clear();
       this.$router.push("/");
     },
 
     async createDrive() {
       await API.post("/company/create_drive", {
-        company_id: this.company_id,
         ...this.form
       });
 
@@ -171,7 +170,7 @@ export default {
     },
 
     async fetchDrives() {
-      const res = await API.get(`/company/drives/${this.company_id}`);
+      const res = await API.get("/company/drives");
       this.drives = res.data;
     },
 

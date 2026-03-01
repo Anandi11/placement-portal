@@ -90,7 +90,6 @@ import API from "../services/api";
 export default {
   data() {
     return {
-      student_id: localStorage.getItem("student_id"),
       drives: [],
       appliedDrives: []
     };
@@ -111,26 +110,26 @@ export default {
       const res = await API.get("/student/drives");
       this.drives = res.data;
     },
+
     async exportApplications() {
-      await API.post(`/student/export/${this.student_id}`);
-      alert("Export started! Check backend exports folder after a few seconds.");
+      await API.post(`/student/export`);
+      alert("Export started! Check backend exports folder.");
     },
+
     async apply(drive_id) {
       try {
         await API.post("/drive/apply", {
-          student_id: this.student_id,
           drive_id: drive_id
         });
 
         alert("Applied successfully!");
-
       } catch (err) {
         alert(err.response?.data?.message || "Already applied or not eligible");
       }
     },
 
     async fetchAppliedDrives() {
-      const res = await API.get(`/student/placement_history/${this.student_id}`);
+      const res = await API.get(`/student/placement_history`);
       this.appliedDrives = res.data;
     }
 

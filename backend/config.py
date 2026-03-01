@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime
 
 class Config:
     SECRET_KEY = "secret"
