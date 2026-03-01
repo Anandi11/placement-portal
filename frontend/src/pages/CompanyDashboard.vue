@@ -134,7 +134,7 @@ import API from "../services/api";
 export default {
   data() {
     return {
-      company_id: localStorage.getItem("user_id"),
+      company_id: localStorage.getItem("company_id"),
       drives: [],
       applicants: [],
       selectedDrive: null,

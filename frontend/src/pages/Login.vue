@@ -39,6 +39,12 @@ export default {
 
         localStorage.setItem("role", role);
         localStorage.setItem("user_id", user_id);
+        // 🔥 NEW
+        if (res.data.company_id)
+          localStorage.setItem("company_id", res.data.company_id);
+
+        if (res.data.student_id)
+          localStorage.setItem("student_id", res.data.student_id);
 
         if (role === "admin") this.$router.push("/admin");
         else if (role === "student") this.$router.push("/student");

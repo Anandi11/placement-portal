@@ -9,13 +9,10 @@ drive_bp = Blueprint("drive_bp", __name__)
 def apply_drive():
 
     data = request.get_json()
-
-    # 🔥 get values from frontend
     student_user_id = data.get("student_id")
     drive_id = data.get("drive_id")
 
-    # 🔥 convert user_id → student table record
-    student = Student.query.filter_by(user_id=student_user_id).first()
+    student = Student.query.get(student_user_id)
 
     if not student:
         return jsonify({"message": "Student not found"}), 404

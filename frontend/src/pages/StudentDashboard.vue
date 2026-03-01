@@ -6,6 +6,10 @@
       <h2>Student Dashboard</h2>
       <button class="btn btn-outline-danger" @click="logout">Logout</button>
     </div>
+      <button class="btn btn-warning mb-3"
+          @click="exportApplications">
+          Export My Applications (CSV)
+  </button>
 
     <!-- Available Drives -->
     <div class="card shadow-sm">
@@ -86,7 +90,7 @@ import API from "../services/api";
 export default {
   data() {
     return {
-      student_id: localStorage.getItem("user_id"),
+      student_id: localStorage.getItem("student_id"),
       drives: [],
       appliedDrives: []
     };
@@ -107,11 +111,14 @@ export default {
       const res = await API.get("/student/drives");
       this.drives = res.data;
     },
-
+    async exportApplications() {
+      await API.post(`/student/export/${this.student_id}`);
+      alert("Export started! Check backend exports folder after a few seconds.");
+    },
     async apply(drive_id) {
       try {
         await API.post("/drive/apply", {
-          user_id: this.student_id,
+          student_id: this.student_id,
           drive_id: drive_id
         });
 

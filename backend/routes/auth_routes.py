@@ -71,28 +71,31 @@ def register_company():
     return jsonify({"message": "Company registered. Await admin approval."}), 201
 
 
-# ===============================
-# LOGIN
-# ===============================
-# ===============================
-# LOGIN (SIMPLE VERSION)
-# ===============================
 @auth_bp.route("/login", methods=["POST"])
 def login():
 
     data = request.get_json()
-
     email = data.get("email")
     password = data.get("password")
 
     user = User.query.filter_by(email=email).first()
 
-    # 🔥 correct password check
     if not user or not user.check_password(password):
         return jsonify({"message": "Invalid credentials"}), 401
 
-    return jsonify({
+    response = {
         "message": "Login successful",
         "role": user.role,
         "user_id": user.id
-    })
+    }
+
+    # 🔥 ADD THIS PART
+    if user.role == "company":
+        company = Company.query.filter_by(user_id=user.id).first()
+        response["company_id"] = company.id
+
+    if user.role == "student":
+        student = Student.query.filter_by(user_id=user.id).first()
+        response["student_id"] = student.id
+
+    return jsonify(response)

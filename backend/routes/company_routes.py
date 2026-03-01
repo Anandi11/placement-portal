@@ -22,10 +22,10 @@ def create_drive_route():
 # ===============================
 # VIEW COMPANY DRIVES
 # ===============================
-@company_bp.route("/drives/<int:user_id>", methods=["GET"])
-def get_company_drives(user_id):
+@company_bp.route("/drives/<int:company_id>", methods=["GET"])
+def get_company_drives(company_id):
 
-    company = Company.query.filter_by(user_id=user_id).first()
+    company = Company.query.get(company_id)
 
     if not company:
         return jsonify([])

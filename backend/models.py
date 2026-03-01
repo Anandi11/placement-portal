@@ -106,6 +106,4 @@ class Application(db.Model):
     application_date = db.Column(db.DateTime, server_default=db.func.now())
 
     status = db.Column(db.String(20), default="Applied")
-    # Applied / Shortlisted / Selected / Rejected
-
     interview_date = db.Column(db.DateTime, nullable=True)

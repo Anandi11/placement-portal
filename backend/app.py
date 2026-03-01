@@ -1,6 +1,7 @@
 from flask import Flask
 from config import Config
 from extensions import db, cache, celery
+from extensions import db, cache, celery
 from flask_cors import CORS
 from routes.auth_routes import auth_bp
 from routes.admin_routes import admin_bp
@@ -15,11 +16,12 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     CORS(app)
+
     db.init_app(app)
     cache.init_app(app)
 
     init_celery(app)
-
+    import tasks
     app.register_blueprint(auth_bp, url_prefix="/api/auth")
     app.register_blueprint(admin_bp, url_prefix="/api/admin")
     app.register_blueprint(student_bp, url_prefix="/api/student")
@@ -29,22 +31,12 @@ def create_app():
     with app.app_context():
         db.create_all()
         create_admin_user()
-    
-    # 🔥 TEMP TEST ROUTE
-    @app.route("/test-cache")
-    @cache.cached(timeout=20)
-    def test_cache():
-        print("Cache executed")
-        return "Hello Redis Cache!"
-    
+
     return app
 
-
 def init_celery(app):
-    celery.conf.update(
-        broker_url=app.config["CELERY_BROKER_URL"],
-        result_backend=app.config["CELERY_RESULT_BACKEND"]
-    )
+
+    celery.conf.update(app.config)
 
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
@@ -52,7 +44,6 @@ def init_celery(app):
                 return self.run(*args, **kwargs)
 
     celery.Task = ContextTask
-
 
 def create_admin_user():
 
@@ -70,6 +61,7 @@ def create_admin_user():
         db.session.commit()
         print("Admin user created successfully!")
 
+app=create_app()
 
 if __name__ == "__main__":
     app = create_app()
