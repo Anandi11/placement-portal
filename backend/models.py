@@ -1,6 +1,6 @@
 from extensions import db
 from werkzeug.security import generate_password_hash, check_password_hash
-
+from datetime import datetime
 
 # ==============================
 # USER MODEL (Unified roles)
@@ -107,3 +107,12 @@ class Application(db.Model):
 
     status = db.Column(db.String(20), default="Applied")
     interview_date = db.Column(db.DateTime, nullable=True)
+
+
+class MonthlyReport(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    total_drives = db.Column(db.Integer)
+    total_applications = db.Column(db.Integer)
+    total_selected = db.Column(db.Integer)
+    generated_on = db.Column(db.DateTime, default=datetime.utcnow)
+    html_content = db.Column(db.Text)
