@@ -17,7 +17,7 @@ from celery.schedules import crontab
 celery.conf.beat_schedule = {
     "daily-deadline-reminder": {
         "task": "tasks.send_deadline_reminders",
-        "schedule": crontab(hour=9, minute=0),
+        "schedule": 30.0,  # Every 30 seconds for testing (change to crontab(hour=8) for daily at 8 AM)
     },
     "monthly-admin-report": {
         "task": "tasks.generate_monthly_report",

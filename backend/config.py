@@ -14,3 +14,12 @@ class Config:
     # Celery
     CELERY_BROKER_URL = "redis://localhost:6379/0"
     CELERY_RESULT_BACKEND = "redis://localhost:6379/0"
+    
+    # Email Config (Gmail example)
+    MAIL_SERVER = "smtp.gmail.com"
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USE_SSL = False
+    MAIL_USERNAME = "your_email@gmail.com"
+    MAIL_PASSWORD = "your_app_password"
+    MAIL_DEFAULT_SENDER = "your_email@gmail.com"

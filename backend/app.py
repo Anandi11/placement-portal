@@ -35,7 +35,12 @@ def create_app():
 
 def init_celery(app):
 
-    celery.conf.update(app.config)
+    celery.conf.update(
+        broker_url=app.config["CELERY_BROKER_URL"],
+        result_backend=app.config["CELERY_RESULT_BACKEND"],
+        timezone="Asia/Kolkata",
+        enable_utc=True
+    )
 
     class ContextTask(celery.Task):
         def __call__(self, *args, **kwargs):
