@@ -1,10 +1,11 @@
 import csv
 import os
 from models import Application, PlacementDrive, Company
-from extensions import db
-from extensions import celery
+from extensions import db, celery, mail
 from models import PlacementDrive, Student
 from datetime import datetime, timedelta
+from flask_mail import Message
+from models import Student, User
 
 @celery.task
 def export_student_applications(student_id):
@@ -52,15 +53,65 @@ def export_student_applications(student_id):
 @celery.task
 def send_deadline_reminders():
 
-    upcoming = datetime.now() + timedelta(minutes=1)
+    from flask_mail import Message
+    from extensions import mail
+    from models import User, Student, Application
+    from datetime import datetime, timedelta
+
+    print("🔥 REMINDER TASK RUNNING")
+
+    upcoming = datetime.now() + timedelta(days=2)
 
     drives = PlacementDrive.query.filter(
         PlacementDrive.application_deadline <= upcoming,
         PlacementDrive.status == "Approved"
     ).all()
-    print("🔥 REMINDER TASK RUNNING")
+
     for drive in drives:
-        print(f"Reminder: Drive {drive.job_title} deadline approaching!")
+
+        students = Student.query.all()
+
+        for student in students:
+
+            # Check if already applied
+            already_applied = Application.query.filter_by(
+                student_id=student.id,
+                drive_id=drive.id
+            ).first()
+
+            if already_applied:
+                continue  # Skip
+
+            # Basic eligibility check (adjust as per your logic)
+            if (
+                student.cgpa >= drive.cgpa_eligibility
+                and str(student.year) == str(drive.year_eligibility)
+                and student.branch.lower() in drive.branch_eligibility.lower()
+            ):
+
+                user = User.query.get(student.user_id)
+
+                if user and user.email:
+
+                    print("Sending reminder to:", user.email)
+
+                    msg = Message(
+                        subject="Placement Drive Deadline Reminder",
+                        recipients=[user.email],
+                        body=f"""
+Hello {user.name},
+
+The placement drive '{drive.job_title}' is closing soon.
+
+Deadline: {drive.application_deadline}
+
+Please apply before it closes.
+
+Placement Portal
+"""
+                    )
+
+                    mail.send(msg)
 
     return "Daily reminders sent"
 
@@ -80,9 +131,18 @@ def generate_monthly_report():
     <p>Total Selected: {total_selected}</p>
     """
 
-    with open("monthly_report.html", "w") as f:
-        f.write(html_report)
+    admin = User.query.filter_by(role="admin").first()
 
-    print("Monthly report generated")
+    if admin:
 
-    return "Monthly report created"
+        msg = Message(
+            subject="Monthly Placement Activity Report",
+            recipients=[admin.email]
+        )
+
+        msg.html = html_report
+        mail.send(msg)
+
+        print("Monthly report emailed to admin")
+
+    return "Monthly report sent"

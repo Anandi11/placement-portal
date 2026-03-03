@@ -20,6 +20,6 @@ class Config:
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USE_SSL = False
-    MAIL_USERNAME = "your_email@gmail.com"
-    MAIL_PASSWORD = "your_app_password"
-    MAIL_DEFAULT_SENDER = "your_email@gmail.com"
+    MAIL_USERNAME = "anandiraghavi2005@gmail.com"
+    MAIL_PASSWORD = "brvhhmnsxwpovdly"
+    MAIL_DEFAULT_SENDER = "anandiraghavi2005@gmail.com"
