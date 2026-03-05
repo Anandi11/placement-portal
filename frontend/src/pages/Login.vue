@@ -1,19 +1,38 @@
 <template>
-  <div class="container mt-5">
-    <h2>Login</h2>
+  <div class="login-wrapper d-flex align-items-center justify-content-center">
+    <div class="card login-card shadow-lg">
+      <div class="card-body p-4">
 
-    <input v-model="email" placeholder="Email" class="form-control mb-2" />
-    <input v-model="password" type="password" placeholder="Password" class="form-control mb-2" />
+        <div class="text-center mb-4">
+          <h3 class="fw-bold">Placement Portal</h3>
+          <p class="text-muted mb-0">Login to continue</p>
+        </div>
 
-    <button @click="login" class="btn btn-primary">Login</button>
+        <div class="mb-3">
+          <label class="form-label">Email</label>
+          <input v-model="email" class="form-control form-control-lg" placeholder="Enter your email" />
+        </div>
 
-    <p class="mt-3">
-      Student? <router-link to="/register/student">Register</router-link><br>
-      Company? <router-link to="/register/company">Register</router-link>
-    </p>
+        <div class="mb-3">
+          <label class="form-label">Password</label>
+          <input v-model="password" type="password" class="form-control form-control-lg" placeholder="Enter your password" />
+        </div>
+
+        <button @click="login" class="btn btn-dark w-100 btn-lg">
+          Login
+        </button>
+
+        <div class="text-center mt-4">
+          <small class="text-muted">
+            Student? <router-link to="/register/student">Register</router-link><br>
+            Company? <router-link to="/register/company">Register</router-link>
+          </small>
+        </div>
+
+      </div>
+    </div>
   </div>
 </template>
-
 <script>
 import API from "../services/api";
 

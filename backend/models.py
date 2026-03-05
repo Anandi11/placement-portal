@@ -44,7 +44,12 @@ class Student(db.Model):
     cgpa = db.Column(db.Float)
     year = db.Column(db.Integer)
 
-    resume_link = db.Column(db.String(200))
+    # ── NEW COLUMNS ── run flask db migrate + flask db upgrade after adding these
+    phone = db.Column(db.String(20))
+    skills = db.Column(db.String(300))   # comma-separated e.g. "Python, React, SQL"
+    bio = db.Column(db.Text)
+
+    resume_link = db.Column(db.String(200))  # e.g. /uploads/resumes/resume_5.pdf
 
     placement_history = db.relationship("Application", backref="student", lazy=True)
 

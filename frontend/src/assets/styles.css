@@ -1,0 +1,78 @@
+/* ===== GLOBAL BACKGROUND ===== */
+body {
+  background-color: #f5f7fa;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* ===== LOGIN ===== */
+.login-wrapper {
+  height: 100vh;
+  background: linear-gradient(135deg, #1f2937, #111827);
+}
+
+.login-card {
+  width: 400px;
+  border-radius: 15px;
+  border: none;
+}
+
+/* ===== DASHBOARD WRAPPER ===== */
+.dashboard-wrapper {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+/* ===== CARDS ===== */
+.card {
+  border: none;
+  border-radius: 15px;
+}
+
+.card-header {
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
+  font-weight: 600;
+}
+
+/* ===== STAT CARDS ===== */
+.stat-card {
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+}
+
+/* ===== TABLE ===== */
+.table {
+  background-color: white;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f1f5f9;
+}
+
+/* ===== GRADIENT HEADER ===== */
+.gradient-header {
+  background: linear-gradient(45deg, #2563eb, #1e40af);
+}
+
+/* ===== REPORT BOX ===== */
+.report-box {
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+/* ===== BUTTON POLISH ===== */
+.btn {
+  border-radius: 8px;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .navbar-brand {
+    font-size: 14px;
+  }
+}

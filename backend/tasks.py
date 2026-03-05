@@ -118,31 +118,46 @@ Placement Portal
 @celery.task
 def generate_monthly_report():
 
-    from models import Application
+    from flask_mail import Message
+    from extensions import mail
+    from models import Application, PlacementDrive, User, MonthlyReport
+    from datetime import datetime
+
+    print("📊 GENERATING MONTHLY REPORT")
 
     total_drives = PlacementDrive.query.count()
     total_applications = Application.query.count()
     total_selected = Application.query.filter_by(status="Selected").count()
 
     html_report = f"""
-    <h1>Monthly Placement Report</h1>
-    <p>Total Drives: {total_drives}</p>
-    <p>Total Applications: {total_applications}</p>
-    <p>Total Selected: {total_selected}</p>
+    <h2>Monthly Placement Report</h2>
+    <p><strong>Total Drives:</strong> {total_drives}</p>
+    <p><strong>Total Applications:</strong> {total_applications}</p>
+    <p><strong>Total Selected:</strong> {total_selected}</p>
+    <p><em>Generated on: {datetime.now()}</em></p>
     """
 
+    # ✅ Save in DB
+    report = MonthlyReport(
+        total_drives=total_drives,
+        total_applications=total_applications,
+        total_selected=total_selected,
+        html_content=html_report
+    )
+
+    db.session.add(report)
+    db.session.commit()
+
+    # ✅ Send email to admin
     admin = User.query.filter_by(role="admin").first()
 
-    if admin:
-
+    if admin and admin.email:
         msg = Message(
-            subject="Monthly Placement Activity Report",
-            recipients=[admin.email]
+            subject="Monthly Placement Report",
+            recipients=[admin.email],
+            html=html_report
         )
-
-        msg.html = html_report
         mail.send(msg)
+        print("Report emailed to admin:", admin.email)
 
-        print("Monthly report emailed to admin")
-
-    return "Monthly report sent"
+    return "Monthly report generated and sent"
