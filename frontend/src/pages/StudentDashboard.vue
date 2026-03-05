@@ -36,11 +36,51 @@
           <span class="topbar-subtitle">Student Placement Portal</span>
         </div>
         <div class="topbar-right">
-          <!-- Dummy search placeholder for future -->
-          <div v-if="activeSection === 'drives'" class="search-placeholder">
-            <span class="search-icon">🔍</span>
-            <input type="text" class="search-input" placeholder="Search drives by company or role… (coming soon)" disabled />
+          <!-- Live drive search -->
+          <div v-if="activeSection === 'drives'" class="search-wrapper">
+            <div class="search-placeholder" :class="{ active: searchFocused }">
+              <span class="search-icon">🔍</span>
+              <input
+                type="text"
+                v-model="searchQuery"
+                class="search-input"
+                placeholder="Search drives by company or role..."
+                @input="onSearchInput"
+                @focus="searchFocused = true"
+                @blur="handleSearchBlur"
+                @keydown.escape="closeSearch"
+              />
+              <span v-if="searchLoading" class="search-spinner">⏳</span>
+              <button v-if="searchQuery" class="search-clear" @click="clearSearch">✕</button>
+            </div>
+
+            <!-- DROPDOWN RESULTS -->
+            <div v-if="showSearchResults && searchQuery" class="search-dropdown">
+              <div v-if="searchLoading" class="search-state">Searching…</div>
+              <div v-else-if="!searchResults.length" class="search-state">
+                No drives found for "<strong>{{ searchQuery }}</strong>"
+              </div>
+              <template v-else>
+                <div class="search-group-label">🚀 Matching Drives</div>
+                <div
+                  v-for="d in searchResults"
+                  :key="d.id"
+                  class="search-result-item"
+                  @mousedown="selectDrive(d)"
+                >
+                  <div class="result-avatar">{{ d.company?.charAt(0) }}</div>
+                  <div class="result-info">
+                    <span class="result-name">{{ d.job_title }}</span>
+                    <span class="result-sub">{{ d.company }}</span>
+                  </div>
+                  <span class="deadline-badge" :class="{ 'deadline-soon': isDeadlineSoon(d.deadline) }">
+                    📅 {{ d.deadline }}
+                  </span>
+                </div>
+              </template>
+            </div>
           </div>
+
           <button v-if="activeSection !== 'profile'" class="btn-export" @click="exportApplications">
             ⬇ Export CSV
           </button>
@@ -230,6 +270,14 @@ export default {
       resumeFile: null,
       resumeFileName: "",
       resumeFileSize: "",
+
+      searchQuery: "",
+      searchFocused: false,
+      searchLoading: false,
+      showSearchResults: false,
+      searchTimeout: null,
+      searchResults: [],
+
       profile: {
         name: "", email: "", branch: "",
         year: "", cgpa: "", phone: "",
@@ -375,6 +423,59 @@ export default {
     isDeadlineSoon(deadline) {
       const diff = new Date(deadline) - new Date();
       return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
+    },
+
+    // ── DRIVE SEARCH ──
+    onSearchInput() {
+      clearTimeout(this.searchTimeout);
+      if (!this.searchQuery.trim()) {
+        this.showSearchResults = false;
+        this.searchResults = [];
+        // restore full drive list when query is cleared
+        this.fetchDrives();
+        return;
+      }
+      this.searchLoading = true;
+      this.showSearchResults = true;
+      this.searchTimeout = setTimeout(() => this.runSearch(), 400);
+    },
+
+    async runSearch() {
+      try {
+        const res = await API.get(`/student/search/drives?q=${encodeURIComponent(this.searchQuery)}`);
+        this.searchResults = res.data;
+      } catch (err) {
+        console.error("Search error:", err);
+        this.searchResults = [];
+      } finally {
+        this.searchLoading = false;
+      }
+    },
+
+    // Clicking a result scrolls the drives table to that drive and highlights it
+    selectDrive(drive) {
+      this.drives = [drive];          // filter table to just this result
+      this.closeSearch();
+    },
+
+    clearSearch() {
+      this.searchQuery = "";
+      this.searchResults = [];
+      this.showSearchResults = false;
+      this.fetchDrives();             // restore full list
+    },
+
+    closeSearch() {
+      this.showSearchResults = false;
+      this.searchFocused = false;
+    },
+
+    handleSearchBlur() {
+      // Delay so mousedown on a result fires before blur hides the dropdown
+      setTimeout(() => {
+        this.searchFocused = false;
+        this.showSearchResults = false;
+      }, 150);
     }
   }
 };
@@ -462,6 +563,11 @@ export default {
 .topbar-subtitle { font-size: 0.8rem; color: #94a3b8; }
 .topbar-right { display: flex; align-items: center; gap: 12px; }
 
+.search-wrapper {
+  position: relative;
+  width: 300px;
+}
+
 .search-placeholder {
   display: flex;
   align-items: center;
@@ -470,17 +576,109 @@ export default {
   border-radius: 8px;
   padding: 8px 14px;
   gap: 8px;
-  width: 280px;
+  width: 100%;
+  transition: border 0.15s, box-shadow 0.15s;
 }
-.search-icon { color: #94a3b8; }
+.search-placeholder.active,
+.search-placeholder:focus-within {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.1);
+  background: #fff;
+}
+.search-icon { color: #94a3b8; flex-shrink: 0; }
 .search-input {
   border: none;
   background: transparent;
   outline: none;
   font-size: 0.85rem;
-  color: #64748b;
+  color: #0f172a;
   width: 100%;
-  cursor: not-allowed;
+  cursor: text;
+  font-family: inherit;
+}
+.search-input::placeholder { color: #94a3b8; }
+.search-spinner { font-size: 0.8rem; flex-shrink: 0; }
+.search-clear {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.search-clear:hover { background: #f1f5f9; color: #475569; }
+
+/* Dropdown */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 200;
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 6px 0;
+}
+.search-state {
+  padding: 16px 18px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  text-align: center;
+}
+.search-group-label {
+  padding: 8px 16px 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #94a3b8;
+}
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.search-result-item:hover { background: #f8fafc; }
+.result-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #8b5cf6;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.result-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.result-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.result-sub {
+  font-size: 0.76rem;
+  color: #94a3b8;
 }
 
 .btn-export {

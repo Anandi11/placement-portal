@@ -1,11 +1,9 @@
 import csv
 import os
-from models import Application, PlacementDrive, Company
+from models import Application, PlacementDrive, Company, Student, User, MonthlyReport
 from extensions import db, celery, mail
-from models import PlacementDrive, Student
 from datetime import datetime, timedelta
 from flask_mail import Message
-from models import Student, User
 
 @celery.task
 def export_student_applications(student_id):
@@ -53,17 +51,12 @@ def export_student_applications(student_id):
 @celery.task
 def send_deadline_reminders():
 
-    from flask_mail import Message
-    from extensions import mail
-    from models import User, Student, Application
-    from datetime import datetime, timedelta
-
     print("🔥 REMINDER TASK RUNNING")
 
     upcoming = datetime.now() + timedelta(days=2)
 
     drives = PlacementDrive.query.filter(
-        PlacementDrive.application_deadline <= upcoming,
+        PlacementDrive.application_deadline.between(datetime.now(), upcoming),
         PlacementDrive.status == "Approved"
     ).all()
 
@@ -72,17 +65,13 @@ def send_deadline_reminders():
         students = Student.query.all()
 
         for student in students:
-
-            # Check if already applied
             already_applied = Application.query.filter_by(
                 student_id=student.id,
                 drive_id=drive.id
             ).first()
 
             if already_applied:
-                continue  # Skip
-
-            # Basic eligibility check (adjust as per your logic)
+                continue 
             if (
                 student.cgpa >= drive.cgpa_eligibility
                 and str(student.year) == str(drive.year_eligibility)
@@ -99,17 +88,17 @@ def send_deadline_reminders():
                         subject="Placement Drive Deadline Reminder",
                         recipients=[user.email],
                         body=f"""
-Hello {user.name},
+                            Hello {user.name},
 
-The placement drive '{drive.job_title}' is closing soon.
+                            The placement drive '{drive.job_title}' is closing soon.
 
-Deadline: {drive.application_deadline}
+                            Deadline: {drive.application_deadline}
 
-Please apply before it closes.
+                            Please apply before it closes.
 
-Placement Portal
-"""
-                    )
+                            Placement Portal
+                            """
+                                                )
 
                     mail.send(msg)
 
@@ -117,11 +106,6 @@ Placement Portal
 
 @celery.task
 def generate_monthly_report():
-
-    from flask_mail import Message
-    from extensions import mail
-    from models import Application, PlacementDrive, User, MonthlyReport
-    from datetime import datetime
 
     print("📊 GENERATING MONTHLY REPORT")
 

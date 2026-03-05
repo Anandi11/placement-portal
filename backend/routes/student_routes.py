@@ -93,12 +93,18 @@ def export_applications():
 @student_bp.route("/search/drives")
 @jwt_required()
 def search_drives():
+    claims = get_jwt()
+    if claims["role"] != "student":
+        return jsonify({"error": "Unauthorized"}), 403
+
     query = request.args.get("q", "").strip()
+    if not query:
+        return jsonify([])
 
     drives = db.session.query(PlacementDrive, Company.company_name)\
         .join(Company)\
         .filter(
-            PlacementDrive.status == "Approved",
+            PlacementDrive.status == "Approved",  # students only see approved drives
             or_(
                 PlacementDrive.job_title.ilike(f"%{query}%"),
                 Company.company_name.ilike(f"%{query}%")
@@ -110,7 +116,7 @@ def search_drives():
             "id": d.id,
             "job_title": d.job_title,
             "company": company,
-            "deadline": d.application_deadline
+            "deadline": str(d.application_deadline)  # stringify so JSON serializes cleanly
         }
         for d, company in drives
     ])
