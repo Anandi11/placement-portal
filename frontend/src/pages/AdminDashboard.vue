@@ -234,11 +234,6 @@
 
       <!-- STUDENTS SECTION -->
       <section v-if="activeSection === 'students'" class="section">
-        <!-- Dummy search for future -->
-        <div class="search-bar-container">
-          <span class="search-icon">🔍</span>
-          <input type="text" class="search-bar-input" placeholder="Search students by name or email… (coming soon)" disabled />
-        </div>
         <div class="section-card">
           <div class="card-title">Student Registry</div>
           <div class="table-wrapper">

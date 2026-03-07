@@ -12,9 +12,8 @@ from models import User, Company, PlacementDrive, Application
 import os
 
 migrate = Migrate()
-
 def create_app():
-    app = Flask(__name__)
+    app=Flask(__name__)
     app.config.from_object(Config)
     CORS(app)
 
@@ -33,7 +32,6 @@ def create_app():
     app.register_blueprint(company_bp, url_prefix="/api/company")
     app.register_blueprint(drive_bp, url_prefix="/api/drive")
 
-    # ── Serve uploaded resumes ──
     @app.route("/uploads/resumes/<filename>")
     def serve_resume(filename):
         upload_folder = os.path.join(app.root_path, "uploads", "resumes")
@@ -44,7 +42,6 @@ def create_app():
         create_admin_user()
 
     return app
-
 
 def init_celery(app):
     celery.conf.update(
@@ -59,11 +56,10 @@ def init_celery(app):
             with app.app_context():
                 return self.run(*args, **kwargs)
 
-    celery.Task = ContextTask
-
+    celery.Task=ContextTask
 
 def create_admin_user():
-    admin = User.query.filter_by(role="admin").first()
+    admin=User.query.filter_by(role="admin").first()
     if not admin:
         admin = User(
             name="Placement Admin",
@@ -76,8 +72,7 @@ def create_admin_user():
         db.session.commit()
         print("Admin user created successfully!")
 
-
-app = create_app()
+app=create_app()
 
 if __name__ == "__main__":
     app.run(debug=True)
