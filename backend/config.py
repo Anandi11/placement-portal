@@ -1,5 +1,8 @@
 import datetime
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
 class Config:
     SECRET_KEY="secret"
     JWT_SECRET_KEY="jwt-secret-key"
@@ -14,6 +17,6 @@ class Config:
     MAIL_PORT=587
     MAIL_USE_TLS=True
     MAIL_USE_SSL=False
-    MAIL_USERNAME="anandiraghavi2005@gmail.com"
-    MAIL_PASSWORD="brvhhmnsxwpovdly"
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER="anandiraghavi2005@gmail.com"
