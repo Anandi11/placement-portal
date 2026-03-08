@@ -2,7 +2,6 @@ from flask import Blueprint, jsonify, request, current_app
 from models import PlacementDrive, Student, User, Company, Application
 from extensions import db
 from sqlalchemy import or_
-from services.student_service import get_student_placement_history
 from extensions import cache
 from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from tasks import export_student_applications
@@ -233,21 +232,3 @@ def upload_resume():
         "message": "Resume uploaded successfully",
         "resume_url": student.resume_link
     })
-
-# def get_student_placement_history(student_id):
-
-#     applications = Application.query.filter_by(student_id=student_id).all()
-
-#     history = []
-
-#     for app in applications:
-#         history.append({
-#             "company": app.drive.company.company_name,
-#             "job_title": app.drive.job_title,
-#             "status": app.status,
-#             "applied_on": app.application_date,
-#             "drive_deadline": app.drive.application_deadline,
-#             "interview_date": app.interview_date.strftime("%d %b %Y") if app.interview_date else None,
-#         })
-
-#     return history
