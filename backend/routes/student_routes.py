@@ -17,21 +17,16 @@ def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_student_or_404(user_id):
-    """Helper — returns (student, user) tuple or raises early."""
     user = User.query.get(user_id)
     student = Student.query.filter_by(user_id=user_id).first()
     return student, user
 
-
-# ===============================
-# VIEW APPROVED DRIVES
-# ===============================
 @student_bp.route("/drives", methods=["GET"])
 @jwt_required()
 @cache.cached(timeout=60)
 def view_drives():
-    claims = get_jwt()
-    if claims["role"] != "student":
+    claims=get_jwt()
+    if claims["role"]!="student":
         return jsonify({"error": "Unauthorized"}), 403
 
     drives = PlacementDrive.query.filter_by(status="Approved").all()
@@ -47,10 +42,6 @@ def view_drives():
 
     return jsonify(result)
 
-
-# ===============================
-# VIEW STUDENT APPLIED DRIVES
-# ===============================
 @student_bp.route("/placement_history", methods=["GET"])
 @jwt_required()
 def placement_history():
@@ -63,13 +54,23 @@ def placement_history():
 
     if not student:
         return jsonify([])
+    
+    applications = Application.query.filter_by(student_id=student.id).all()
 
-    return jsonify(get_student_placement_history(student.id))
+    history = []
 
+    for app in applications:
+        history.append({
+            "company": app.drive.company.company_name,
+            "job_title": app.drive.job_title,
+            "status": app.status,
+            "applied_on": app.application_date,
+            "drive_deadline": app.drive.application_deadline,
+            "interview_date": app.interview_date.strftime("%d %b %Y") if app.interview_date else None,
+        })
 
-# ===============================
-# EXPORT APPLICATIONS (ASYNC)
-# ===============================
+    return jsonify(history)
+
 @student_bp.route("/export", methods=["POST"])
 @jwt_required()
 def export_applications():
@@ -86,10 +87,6 @@ def export_applications():
     export_student_applications.delay(student.id)
     return jsonify({"message": "Export started in background"})
 
-
-# ===============================
-# SEARCH DRIVES
-# ===============================
 @student_bp.route("/search/drives")
 @jwt_required()
 def search_drives():
@@ -104,7 +101,7 @@ def search_drives():
     drives = db.session.query(PlacementDrive, Company.company_name)\
         .join(Company)\
         .filter(
-            PlacementDrive.status == "Approved",  # students only see approved drives
+            PlacementDrive.status == "Approved",
             or_(
                 PlacementDrive.job_title.ilike(f"%{query}%"),
                 Company.company_name.ilike(f"%{query}%")
@@ -116,15 +113,11 @@ def search_drives():
             "id": d.id,
             "job_title": d.job_title,
             "company": company,
-            "deadline": str(d.application_deadline)  # stringify so JSON serializes cleanly
+            "deadline": str(d.application_deadline)
         }
         for d, company in drives
     ])
 
-
-# ===============================
-# GET PROFILE
-# ===============================
 @student_bp.route("/profile", methods=["GET"])
 @jwt_required()
 def get_profile():
@@ -139,23 +132,18 @@ def get_profile():
         return jsonify({"error": "Profile not found"}), 404
 
     return jsonify({
-        # From User table
         "name":       user.name,
         "email":      user.email,
-        # From Student table
+        
         "branch":     student.branch,
         "cgpa":       student.cgpa,
         "year":       student.year,
         "phone":      student.phone,
         "skills":     student.skills,
         "bio":        student.bio,
-        "resume_url": student.resume_link   # served path, e.g. /uploads/resumes/filename.pdf
+        "resume_url": student.resume_link 
     })
 
-
-# ===============================
-# UPDATE PROFILE
-# ===============================
 @student_bp.route("/profile", methods=["PUT"])
 @jwt_required()
 def update_profile():
@@ -171,17 +159,14 @@ def update_profile():
 
     data = request.get_json()
 
-    # Update User table fields
     if "name" in data:
         user.name = data["name"].strip()
     if "email" in data:
-        # Check the new email isn't already taken by someone else
         existing = User.query.filter(User.email == data["email"], User.id != user_id).first()
         if existing:
             return jsonify({"error": "Email already in use"}), 409
         user.email = data["email"].strip()
 
-    # Update Student table fields
     if "branch" in data:
         student.branch = data["branch"].strip()
     if "cgpa" in data:
@@ -198,15 +183,11 @@ def update_profile():
     db.session.commit()
     return jsonify({"message": "Profile updated successfully"})
 
-
-# ===============================
-# UPLOAD RESUME
-# ===============================
 @student_bp.route("/upload_resume", methods=["POST"])
 @jwt_required()
 def upload_resume():
     claims = get_jwt()
-    if claims["role"] != "student":
+    if claims["role"]!="student":
         return jsonify({"error": "Unauthorized"}), 403
 
     user_id = int(get_jwt_identity())
@@ -229,17 +210,15 @@ def upload_resume():
     if file.content_length and file.content_length > 5 * 1024 * 1024:
         return jsonify({"error": "File too large. Max 5MB"}), 413
 
-    # Build a unique filename: resume_<student_id>.<ext>
     ext = file.filename.rsplit(".", 1)[1].lower()
     filename = secure_filename(f"resume_{student.id}.{ext}")
 
     upload_folder = os.path.join(current_app.root_path, "uploads", "resumes")
-    os.makedirs(upload_folder, exist_ok=True)   # create folder if it doesn't exist
+    os.makedirs(upload_folder, exist_ok=True)
 
     save_path = os.path.join(upload_folder, filename)
     file.save(save_path)
 
-    # Delete the student's old resume file if it was a different extension
     if student.resume_link:
         old_filename = os.path.basename(student.resume_link)
         if old_filename != filename:
@@ -247,7 +226,6 @@ def upload_resume():
             if os.path.exists(old_path):
                 os.remove(old_path)
 
-    # Save the URL path in DB — serve this via Flask static or a dedicated route
     student.resume_link = f"/uploads/resumes/{filename}"
     db.session.commit()
 
@@ -255,3 +233,21 @@ def upload_resume():
         "message": "Resume uploaded successfully",
         "resume_url": student.resume_link
     })
+
+# def get_student_placement_history(student_id):
+
+#     applications = Application.query.filter_by(student_id=student_id).all()
+
+#     history = []
+
+#     for app in applications:
+#         history.append({
+#             "company": app.drive.company.company_name,
+#             "job_title": app.drive.job_title,
+#             "status": app.status,
+#             "applied_on": app.application_date,
+#             "drive_deadline": app.drive.application_deadline,
+#             "interview_date": app.interview_date.strftime("%d %b %Y") if app.interview_date else None,
+#         })
+
+#     return history

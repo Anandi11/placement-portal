@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
-from models import Company, PlacementDrive
+from models import Company, PlacementDrive, Application
+from extensions import db
+from datetime import datetime
 from flask_jwt_extended import jwt_required, get_jwt, get_jwt_identity
 from services.company_service import (
     create_drive,
@@ -68,3 +70,22 @@ def update_application(app_id):
     status=data.get("status")
 
     return jsonify(update_application_status(app_id, status))
+
+@company_bp.route("/application/schedule/<int:app_id>", methods=["PUT"])
+@jwt_required()
+def schedule_interview(app_id):
+    claims = get_jwt()
+    if claims["role"] != "company":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    data = request.get_json()
+    interview_date = data.get("interview_date")
+
+    application = Application.query.get_or_404(app_id)
+
+    application.interview_date = datetime.fromisoformat(interview_date)
+    application.status = "Interview Scheduled"
+
+    db.session.commit()
+
+    return jsonify({"message": "Interview scheduled successfully"})

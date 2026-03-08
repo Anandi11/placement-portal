@@ -227,11 +227,12 @@
                   <th>Drive</th>
                   <th>Company</th>
                   <th>Status</th>
+                  <th>Interview</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="a in appliedDrives" :key="a.id">
-                  <td><strong>{{ a.drive }}</strong></td>
+                  <td><strong>{{ a.job_title }}</strong></td>
                   <td>{{ a.company }}</td>
                   <td>
                     <span class="status-badge"
@@ -241,6 +242,14 @@
                         'badge-approved': a.status === 'Selected',
                         'badge-rejected': a.status === 'Rejected'
                       }">{{ a.status }}</span>
+                  </td>
+                  <td>
+                    <span v-if="a.interview_date">
+                      📅 {{ a.interview_date }}
+                    </span>
+                    <span v-else class="text-muted">
+                      Not Scheduled
+                    </span>
                   </td>
                 </tr>
               </tbody>
@@ -375,7 +384,6 @@ export default {
       }
     },
 
-    // ── RESUME ──
     onResumeSelect(e) {
       const file = e.target.files[0];
       if (file) this.setResumeFile(file);
@@ -425,7 +433,6 @@ export default {
       return diff > 0 && diff < 3 * 24 * 60 * 60 * 1000;
     },
 
-    // ── DRIVE SEARCH ──
     onSearchInput() {
       clearTimeout(this.searchTimeout);
       if (!this.searchQuery.trim()) {
@@ -454,7 +461,7 @@ export default {
 
     // Clicking a result scrolls the drives table to that drive and highlights it
     selectDrive(drive) {
-      this.drives = [drive];          // filter table to just this result
+      this.drives = [drive];          
       this.closeSearch();
     },
 
@@ -462,7 +469,7 @@ export default {
       this.searchQuery = "";
       this.searchResults = [];
       this.showSearchResults = false;
-      this.fetchDrives();             // restore full list
+      this.fetchDrives();             
     },
 
     closeSearch() {
@@ -471,7 +478,6 @@ export default {
     },
 
     handleSearchBlur() {
-      // Delay so mousedown on a result fires before blur hides the dropdown
       setTimeout(() => {
         this.searchFocused = false;
         this.showSearchResults = false;

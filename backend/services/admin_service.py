@@ -2,9 +2,6 @@ from models import User, Company, PlacementDrive, Application
 from extensions import db
 from sqlalchemy import func
 
-# ==============================
-# DASHBOARD STATS
-# ==============================
 def get_admin_dashboard_stats():
     total_students = User.query.filter_by(role="student").count()
     total_companies = Company.query.count()
@@ -18,10 +15,6 @@ def get_admin_dashboard_stats():
         "applications": total_applications
     }
 
-
-# ==============================
-# COMPANY MANAGEMENT
-# ==============================
 def get_all_companies():
     companies = Company.query.all()
 
@@ -36,7 +29,6 @@ def get_all_companies():
         })
     return result
 
-
 def approve_company(company_id):
     company = Company.query.get(company_id)
     if not company:
@@ -46,7 +38,6 @@ def approve_company(company_id):
     db.session.commit()
 
     return {"message": "Company approved"}
-
 
 def reject_company(company_id):
     company = Company.query.get(company_id)
@@ -58,10 +49,6 @@ def reject_company(company_id):
 
     return {"message": "Company rejected"}
 
-
-# ==============================
-# DRIVE MANAGEMENT
-# ==============================
 def get_all_drives():
     drives = PlacementDrive.query.all()
 
@@ -75,7 +62,6 @@ def get_all_drives():
         })
     return result
 
-
 def approve_drive(drive_id):
     drive = PlacementDrive.query.get(drive_id)
     if not drive:
@@ -86,10 +72,6 @@ def approve_drive(drive_id):
 
     return {"message": "Drive approved"}
 
-
-# ==============================
-# STUDENT MANAGEMENT
-# ==============================
 def get_all_students():
     students = User.query.filter_by(role="student").all()
 
@@ -103,7 +85,6 @@ def get_all_students():
         })
     return result
 
-
 def blacklist_user(user_id):
     user = User.query.get(user_id)
     if not user:
@@ -114,10 +95,6 @@ def blacklist_user(user_id):
 
     return {"message": "User blacklisted"}
 
-
-# ==============================
-# APPLICATION MANAGEMENT
-# ==============================
 def get_all_applications():
     apps = Application.query.all()
 
@@ -135,12 +112,9 @@ def get_all_applications():
 def get_placement_report():
 
     total_drives = PlacementDrive.query.count()
-
     total_applications = Application.query.count()
-
     total_selected = Application.query.filter_by(status="Selected").count()
 
-    # 🔥 FIXED explicit joins
     company_wise = db.session.query(
         Company.company_name,
         func.count(Application.id)

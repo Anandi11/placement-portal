@@ -128,16 +128,20 @@
                     <th>Student</th>
                     <th>Current Status</th>
                     <th>Update Status</th>
+                    <th>Schedule Interview</th>
                   </tr>
                 </thead>
+
                 <tbody>
                   <tr v-for="a in applicants" :key="a.application_id">
+
                     <td>
                       <div class="student-cell">
                         <div class="avatar">{{ a.student_name?.charAt(0) }}</div>
                         {{ a.student_name }}
                       </div>
                     </td>
+
                     <td>
                       <span class="status-badge"
                         :class="{
@@ -147,16 +151,36 @@
                           'badge-rejected': a.status === 'Rejected'
                         }">{{ a.status }}</span>
                     </td>
+
                     <td>
                       <div class="action-group">
                         <button class="btn-action btn-shortlist"
                           @click="updateStatus(a.application_id, 'Shortlisted')">Shortlist</button>
+
                         <button class="btn-action btn-approve"
                           @click="updateStatus(a.application_id, 'Selected')">Select</button>
+
                         <button class="btn-action btn-reject"
                           @click="updateStatus(a.application_id, 'Rejected')">Reject</button>
                       </div>
                     </td>
+
+                    <td>
+                      <input
+                        type="datetime-local"
+                        v-model="a.interview_date"
+                        class="form-control"
+                      />
+
+                      <button
+                        class="btn-action btn-view"
+                        style="margin-top:5px"
+                        @click="scheduleInterview(a.application_id, a.interview_date)"
+                      >
+                        Schedule
+                      </button>
+                    </td>
+
                   </tr>
                 </tbody>
               </table>
@@ -222,6 +246,20 @@ export default {
     async updateStatus(app_id, status) {
       await API.put(`/company/application/update/${app_id}`, { status });
       alert("Status updated");
+      this.loadApplicants(this.selectedDrive);
+    },
+    async scheduleInterview(app_id, interview_date) {
+      if (!interview_date) {
+        alert("Select interview date");
+        return;
+      }
+
+      await API.put(`/company/application/schedule/${app_id}`, {
+        interview_date
+      });
+
+      alert("Interview scheduled");
+
       this.loadApplicants(this.selectedDrive);
     }
   }

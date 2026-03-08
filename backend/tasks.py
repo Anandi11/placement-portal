@@ -51,7 +51,7 @@ def export_student_applications(student_id):
 @celery.task
 def send_deadline_reminders():
 
-    print("🔥 REMINDER TASK RUNNING")
+    print("REMINDER TASK RUNNING")
 
     upcoming = datetime.now() + timedelta(days=2)
 
@@ -107,7 +107,7 @@ def send_deadline_reminders():
 @celery.task
 def generate_monthly_report():
 
-    print("📊 GENERATING MONTHLY REPORT")
+    print("GENERATING MONTHLY REPORT")
 
     total_drives = PlacementDrive.query.count()
     total_applications = Application.query.count()
@@ -120,8 +120,7 @@ def generate_monthly_report():
     <p><strong>Total Selected:</strong> {total_selected}</p>
     <p><em>Generated on: {datetime.now()}</em></p>
     """
-
-    # ✅ Save in DB
+    
     report = MonthlyReport(
         total_drives=total_drives,
         total_applications=total_applications,
@@ -132,7 +131,6 @@ def generate_monthly_report():
     db.session.add(report)
     db.session.commit()
 
-    # ✅ Send email to admin
     admin = User.query.filter_by(role="admin").first()
 
     if admin and admin.email:

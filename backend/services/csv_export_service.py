@@ -2,12 +2,10 @@ import csv
 import os
 from models import Application
 
-
 EXPORT_FOLDER = "exports"
 
 if not os.path.exists(EXPORT_FOLDER):
     os.makedirs(EXPORT_FOLDER)
-
 
 def export_student_applications(student_id):
     applications = Application.query.filter_by(student_id=student_id).all()

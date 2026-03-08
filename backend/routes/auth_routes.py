@@ -2,22 +2,19 @@ from flask import Blueprint, request, jsonify
 from extensions import db
 from models import User, Student, Company
 from flask_jwt_extended import create_access_token
+
 auth_bp = Blueprint("auth_bp", __name__)
 
-
-# ===============================
-# STUDENT REGISTER
-# ===============================
 @auth_bp.route("/register/student", methods=["POST"])
 def register_student():
-    data = request.get_json()
+    data=request.get_json()
 
-    name = data.get("name")
-    email = data.get("email")
-    password = data.get("password")
-    branch = data.get("branch")
-    cgpa = data.get("cgpa")
-    year = data.get("year")
+    name=data.get("name")
+    email=data.get("email")
+    password=data.get("password")
+    branch=data.get("branch")
+    cgpa=data.get("cgpa")
+    year=data.get("year")
 
     if User.query.filter_by(email=email).first():
         return jsonify({"message": "Email already exists"}), 400
@@ -34,10 +31,6 @@ def register_student():
 
     return jsonify({"message": "Student registered successfully"}), 201
 
-
-# ===============================
-# COMPANY REGISTER
-# ===============================
 @auth_bp.route("/register/company", methods=["POST"])
 def register_company():
     data = request.get_json()
@@ -93,7 +86,6 @@ def login():
         "role": user.role
     })
 
-    # 🔥 ADD THIS PART
     if user.role == "company":
         company = Company.query.filter_by(user_id=user.id).first()
         response["company_id"] = company.id

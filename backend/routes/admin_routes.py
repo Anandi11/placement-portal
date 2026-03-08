@@ -18,15 +18,10 @@ from services.admin_service import (
 
 admin_bp = Blueprint("admin_bp", __name__)
 
-# Helper so we don't repeat role check everywhere
 def admin_required():
-    claims = get_jwt()
-    return claims.get("role") != "admin"
+    claims=get_jwt()
+    return claims.get("role")!="admin"
 
-
-# ===============================
-# DASHBOARD
-# ===============================
 @admin_bp.route("/dashboard", methods=["GET"])
 @cache.cached(timeout=30)
 @jwt_required()
@@ -35,17 +30,12 @@ def admin_dashboard():
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(get_admin_dashboard_stats())
 
-
-# ===============================
-# COMPANY APIs
-# ===============================
 @admin_bp.route("/companies", methods=["GET"])
 @jwt_required()
 def list_companies():
     if admin_required():
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(get_all_companies())
-
 
 @admin_bp.route("/approve/company/<int:id>", methods=["PUT"])
 @jwt_required()
@@ -54,7 +44,6 @@ def approve_company_route(id):
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(approve_company(id))
 
-
 @admin_bp.route("/reject/company/<int:id>", methods=["PUT"])
 @jwt_required()
 def reject_company_route(id):
@@ -62,17 +51,12 @@ def reject_company_route(id):
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(reject_company(id))
 
-
-# ===============================
-# DRIVE APIs
-# ===============================
 @admin_bp.route("/drives", methods=["GET"])
 @jwt_required()
 def list_drives():
     if admin_required():
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(get_all_drives())
-
 
 @admin_bp.route("/approve/drive/<int:id>", methods=["PUT"])
 @jwt_required()
@@ -81,17 +65,12 @@ def approve_drive_route(id):
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(approve_drive(id))
 
-
-# ===============================
-# STUDENT APIs
-# ===============================
 @admin_bp.route("/students", methods=["GET"])
 @jwt_required()
 def list_students():
     if admin_required():
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(get_all_students())
-
 
 @admin_bp.route("/blacklist/<int:id>", methods=["PUT"])
 @jwt_required()
@@ -100,10 +79,6 @@ def blacklist_user_route(id):
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(blacklist_user(id))
 
-
-# ===============================
-# APPLICATION APIs
-# ===============================
 @admin_bp.route("/applications", methods=["GET"])
 @cache.cached(timeout=30)
 @jwt_required()
@@ -112,7 +87,6 @@ def list_applications():
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(get_all_applications())
 
-
 @admin_bp.route("/placement_report", methods=["GET"])
 @jwt_required()
 def placement_report():
@@ -120,10 +94,6 @@ def placement_report():
         return jsonify({"error": "Unauthorized"}), 403
     return jsonify(get_placement_report())
 
-
-# ===============================
-# REPORTS
-# ===============================
 @admin_bp.route("/reports", methods=["GET"])
 def get_reports():
     reports = MonthlyReport.query.order_by(
@@ -142,10 +112,6 @@ def get_reports():
     ]
     return jsonify(data)
 
-
-# ===============================
-# SEARCH APIs
-# ===============================
 @admin_bp.route("/search/students")
 @jwt_required()
 def search_students():
@@ -157,12 +123,12 @@ def search_students():
         return jsonify([])
 
     students = User.query.filter(
-        User.role == "student",          # only return students, not all users
+        User.role == "student",
         or_(
             User.name.ilike(f"%{query}%"),
             User.email.ilike(f"%{query}%")
         )
-    ).limit(10).all()                    # cap results so the dropdown stays clean
+    ).limit(10).all()
 
     return jsonify([
         {
@@ -173,7 +139,6 @@ def search_students():
         }
         for s in students
     ])
-
 
 @admin_bp.route("/search/companies")
 @jwt_required()
@@ -187,7 +152,7 @@ def search_companies():
 
     companies = Company.query.filter(
         Company.company_name.ilike(f"%{query}%")
-    ).limit(10).all()                    # cap results
+    ).limit(10).all() 
 
     return jsonify([
         {

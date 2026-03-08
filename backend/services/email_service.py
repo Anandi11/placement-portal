@@ -24,21 +24,15 @@ def send_email(receiver_email, subject, message):
         print("Email error:", e)
         return False
 
-
-# Reminder email
 def send_deadline_reminder(email, drive_title):
     subject = "Placement Drive Deadline Reminder"
     message = f"Reminder: Application deadline approaching for {drive_title}"
     return send_email(email, subject, message)
 
-
-# Monthly admin report
 def send_admin_report(email, report_html):
     subject = "Monthly Placement Report"
     return send_email(email, subject, report_html)
 
-
-# CSV export notification
 def send_csv_ready_email(email):
     subject = "Placement Application Export Ready"
     message = "Your CSV export is ready for download."
